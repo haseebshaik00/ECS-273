@@ -16,7 +16,7 @@ def generate_stock_summary_and_plot(data_folder='stockdata', output_folder='.'):
             df = pd.read_csv(filepath)
             mean_close = round(df['Close'].mean(), 2)
             std_close = round(df['Close'].std(), 2)
-            summary_data.append({'Ticker': ticker, 'Mean_Close': mean_close, 'SD_Close': std_close})
+            summary_data.append({'Ticker': ticker, 'Mean_Close_Price': mean_close, 'SD_Close_Price': std_close})
             df['Ticker'] = ticker
             plot_data.append(df[['Ticker', 'Close']])
 
