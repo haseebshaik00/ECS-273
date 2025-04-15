@@ -20,6 +20,13 @@ def fetch_news_for_one_stock(ticker_symbol, driver, within_days):
 
     print(f"[INFO] Processing news for {ticker_symbol} (last {within_days} days)")
 
+    irrelevant_phrases = {
+        "Oops, something went wrong",
+        "Tip: Try a valid symbol or a specific company name for relevant results",
+        "Sign in to access your portfolio",
+        "Try again."
+    }
+
     for entry in feed.entries:
         published = datetime(*entry.published_parsed[:6])
         if published < cutoff_date:
@@ -36,8 +43,13 @@ def fetch_news_for_one_stock(ticker_symbol, driver, within_days):
 
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             paragraphs = soup.find_all('p')
-            content = '\n'.join([p.get_text() for p in paragraphs]).strip()
+            cleaned_lines = []
+            for p in paragraphs:
+                line = p.get_text(strip=True)
+                if line and line not in irrelevant_phrases:
+                    cleaned_lines.append(line)
 
+            content = '\n'.join(cleaned_lines).strip()
             if not content:
                 continue
 
