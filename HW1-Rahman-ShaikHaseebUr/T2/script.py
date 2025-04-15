@@ -42,9 +42,7 @@ def fetch_news_for_one_stock(ticker_symbol, driver, within_days):
                 continue
 
             safe_title = re.sub(r'[\\/*?:"<>|]', "_", title)[:100]
-            date_format = published.strftime('%Y-%m-%d %H:%M') # published is a datetime object you should get from entity
-
-            # TODO: Append results to the news_list.
+            date_format = published.strftime('%Y-%m-%d %H:%M')
             news_list.append({
                 'ticker': ticker_symbol,
                 'title': safe_title,

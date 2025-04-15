@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import math
 
 def analyze_news_articles(input_folder='stocknews', output_folder='.'):
     os.makedirs(output_folder, exist_ok=True)
@@ -25,23 +26,26 @@ def analyze_news_articles(input_folder='stocknews', output_folder='.'):
                         body = content.split('Content:\n')[-1]
                         article_lengths.append(len(body.strip()))
 
-        if article_lengths:
-            mean_len = round(sum(article_lengths) / len(article_lengths), 2)
+        article_count = len(article_lengths)
+        if article_count:
+            mean_len = round(sum(article_lengths) / article_count, 2)
             std_len = round(pd.Series(article_lengths).std(), 2)
+            std_len = 0.0 if math.isnan(std_len) else std_len
+
             summary_data.append({
                 'Ticker': ticker,
+                'News_Articles': article_count,
                 'Mean_Char_Length': mean_len,
                 'Std_Char_Length': std_len
             })
+
             for length in article_lengths:
                 boxplot_data.append({'Ticker': ticker, 'Length': length})
 
-    # Save summary table
     summary_df = pd.DataFrame(summary_data)
     summary_df = summary_df.sort_values('Ticker')
     summary_df.to_csv(os.path.join(output_folder, 'news_summary_table.csv'), index=False)
 
-    # Generate boxplot
     plot_df = pd.DataFrame(boxplot_data)
     plt.figure(figsize=(14, 6))
     sns.boxplot(data=plot_df, x='Ticker', y='Length')
