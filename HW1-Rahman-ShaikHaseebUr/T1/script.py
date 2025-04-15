@@ -10,7 +10,6 @@ def fetch_one_stock(ticker_symbol, period='1mo'):
     cols = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']
     df = df[[col for col in df.columns if any(c in col for c in cols)]]
     df.columns = cols
-
     return df
 
 def fetch_stocks(ticker_list, period='1mo'):
@@ -28,7 +27,6 @@ def test_submission():
     period = '2y'
     stock_data = fetch_stocks(tickers, period)
     save_stocks_to_csv(stock_data)
-    # generate_boxplot()
 
 if __name__ == '__main__':
     test_submission()

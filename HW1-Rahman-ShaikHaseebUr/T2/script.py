@@ -32,7 +32,7 @@ def fetch_news_for_one_stock(ticker_symbol, driver, within_days):
 
     # RSS feed
     rss_url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={ticker_symbol}&region=US&lang=en-US"
-    # TODO: Parse the feed to extract entries.
+    feed = feedparser.parse(rss_url)
 
     if not feed.entries:
         print(f"[WARNING] No entries found in RSS feed for {ticker_symbol}")
@@ -42,6 +42,9 @@ def fetch_news_for_one_stock(ticker_symbol, driver, within_days):
 
     for entry in feed.entries:
         # TODO: Filter articles based on the published date.
+        published = datetime(*entry.published_parsed[:6])
+        if published < cutoff_date:
+            continue
 
         title = entry.title
         link = entry.link
@@ -56,13 +59,24 @@ def fetch_news_for_one_stock(ticker_symbol, driver, within_days):
 
             # Parse HTML and extract content
             # TODO: Use BeautifulSoup html.parser to extract "content" from the loaded page, only targeting at <p> elements.
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            paragraphs = soup.find_all('p')
+            content = '\n'.join([p.get_text() for p in paragraphs]).strip()
 
             # TODO: Validate if the content is emply; if yes, please continue current loop.
-            
+            if not content:
+                continue
             safe_title = re.sub(r'[\\/*?:"<>|]', "_", title)[:100]
             date_format = published.strftime('%Y-%m-%d %H:%M') # published is a datetime object you should get from entity
 
             # TODO: Append results to the news_list.
+            news_list.append({
+                'ticker': ticker_symbol,
+                'title': title,
+                'link': link,
+                'date': published.strftime('%Y-%m-%d %H:%M'),
+                'content': content
+            })
         except Exception as e:
             print(f"[ERROR] Failed to fetch: {title}")
             print(f"[ERROR] Error: {e}")
@@ -108,6 +122,20 @@ def save_news_to_txt(news_list, output_folder='stocknews'):
         # TODO: Create a subfolder for the ticker if it doesn't exist.
         # TODO: Construct a filename based on the date and title, ensuring it's valid for the filesystem.
         # TODO: Write the news content to the text file in the specified format (see above function comment).
+    for news in news_list:
+        ticker_folder = os.path.join(output_folder, news['ticker'])
+        os.makedirs(ticker_folder, exist_ok=True)
+
+        safe_title = re.sub(r'[\\/*?:"<>|]', "_", news['title'])[:100]
+        filename = f"{news['date'].replace(':', '-')}_{safe_title}.txt"
+        filepath = os.path.join(ticker_folder, filename)
+
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(f"Title: {news['title']}\n")
+            f.write(f"Date: {news['date']}\n")
+            f.write(f"URL: {news['link']}\n")
+            f.write("Content:\n")
+            f.write(news['content'])
 
     print(f"[INFO] Saved {len(news_list)} news articles to '{output_folder}/'")
 
@@ -141,6 +169,16 @@ def fetch_and_save_news_for_all_stocks(ticker_list, within_days):
     # TODO: Use save_news_to_txt to save the fetched news articles.
 
     # TODO: Ensure the WebDriver is properly closed after all tickers have been processed.
+    driver = webdriver.Chrome(options=options)
+
+    try:
+        all_news = []
+        for ticker in ticker_list:
+            articles = fetch_news_for_one_stock(ticker, driver, within_days)
+            all_news.extend(articles)
+        save_news_to_txt(all_news)
+    finally:
+        driver.quit()
 
 # 0 pt
 def test_submission():
@@ -152,10 +190,12 @@ def test_submission():
     1. Change the list of tickers to test different stocks.
     2. Adjust the within_days parameter to fetch news from a different time frame.
     """
-    tickers = ['NVDA', 'AAPL']
+    tickers = ['XOM', 'CVX', 'HAL', 'MMM', 'CAT', 'DAL', 'MCD', 'NKE', 'KO',
+               'JNJ', 'PFE', 'UNH', 'JPM', 'GS', 'BAC', 'AAPL', 'MSFT',
+               'NVDA', 'GOOGL', 'META']
     within_days = 3  # News from the past 3 day
-
     fetch_and_save_news_for_all_stocks(tickers, within_days=within_days)
+
 
 
 if __name__ == '__main__':
