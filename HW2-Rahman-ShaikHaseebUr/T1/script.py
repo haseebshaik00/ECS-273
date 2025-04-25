@@ -4,22 +4,17 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
-
-# 2 pts
 def load_mnist(batch_size=64):
     """
     Load MNIST training and test sets.
-
     Parameters:
         batch_size (int): Batch size for data loaders.
-
     Returns:
         tuple: (train_loader, test_loader)
     """
-    
-    # # TODO: implement dataset loading and preprocessing
-    # # Use torchvision.datasets.MNIST
-    # return None, None  # replace with actual loaders
+    # implement dataset loading and preprocessing
+    # Use torchvision.datasets.MNIST
+    # return loaders
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
@@ -30,45 +25,38 @@ def load_mnist(batch_size=64):
     test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False)
     return train_loader, test_loader
 
-
-# 10 pts
 class Model(nn.Module):
     """
     A simple neural network for MNIST classification.
-
     You should flatten the input and pass it through linear layers.
     """
     def __init__(self):
         super().__init__()
-        # TODO: define model structure
+        # model structure
         self.network = nn.Sequential(
             nn.Flatten(),
             nn.Linear(28*28, 128),
             nn.ReLU(),
             nn.Linear(128, 64),
             nn.ReLU(),
-            nn.Linear(64, 10)
-        )
+            nn.Linear(64, 10))
 
     def forward(self, x):
-        # TODO: implement the forward pass
+        # forward pass
         return self.network(x)
 
-# 5 pts
 def train_one_epoch(model, dataloader, optimizer, loss_fn):
-    """_summary_
-
-    Parameterss:
+    """
+    Parameters:
         model (nn.Module) : model to be trained
         dataloader (DataLoader): The training data loader.
         optimizer (torch.optim.Optimizer): The optimizer.
         loss_fn: The loss function.
-
     Returns:
         loss (float): The average loss for the epoch.
     """
-    # TODO: implement training loop for one epoch
-    #return 0  # replace with actual loss
+    # Training loop for one epoch
+    # return actual loss
     model.train()
     total_loss = 0.0
     for inputs, targets in dataloader:
@@ -78,23 +66,19 @@ def train_one_epoch(model, dataloader, optimizer, loss_fn):
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
-
     return total_loss / len(dataloader)
     
-# 3 pts
 def prediction(model, dataloader):
     """
-    Evaluate model accuracy on test set.
-
+    Evaluate model accuracy on test set
     Parameters:
-        model (nn.Module): The trained model.
-        dataloader (DataLoader): The test data loader.
-
+        model (nn.Module): The trained model
+        dataloader (DataLoader): The test data loader
     Returns:
-        predictions (list): List of predicted labels.
+        predictions (list): List of predicted labels
     """
-    # TODO: implement evaluation logic
-    # return []  # replace with actual predictions
+    # Evaluation logic
+    # return actual predictions
     model.eval()
     predictions = []
     with torch.no_grad():
@@ -104,14 +88,11 @@ def prediction(model, dataloader):
             predictions.extend(predicted.tolist())
     return predictions
 
-
-# 5 pts
 def model_training(num_epochs=10):
     """
     Runs training for multiple epochs and prints evaluation results.
     You can modify this function, such as changing the number of epochs, learning rate, etc for your experiments.
-    Parameters:
-        num_epochs (int): Number of epochs to train.
+    Parameters: num_epochs (int): Number of epochs to train.
     """
     train_loader, test_loader = load_mnist()
     model = Model()
@@ -123,17 +104,16 @@ def model_training(num_epochs=10):
         print(f"Epoch {epoch + 1}/{num_epochs} | Training Loss: {loss:.4f}")
 
     test_predictions = prediction(model, test_loader)
-
     true_labels = []
     for _, labels in test_loader:
         true_labels.extend(labels.tolist())
 
-    # Calculate and print accuracy
+    # Model Accuracy
     correct = sum(p == t for p, t in zip(test_predictions, true_labels))
     accuracy = 100 * correct / len(true_labels)
     print(f"Test Accuracy: {accuracy:.2f}%")
 
-    # Optionally save the trained model
+    # Save model
     torch.save(model.state_dict(), "mnist_model.pth")
     
 if __name__ == '__main__':
